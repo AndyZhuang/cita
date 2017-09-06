@@ -20,9 +20,11 @@
 mod nowpay;
 mod permission;
 mod zhongchao;
+mod native_test;
 
 pub use self::nowpay::nowpay::NowPay;
 pub use self::zhongchao::contract::ZcPermission;
+pub use self::native_test::sim::SimpleStorage;
 use action_params::ActionParams;
 use evm::{self, Ext, GasLeft};
 use std::boxed::Box;

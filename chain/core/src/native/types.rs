@@ -136,7 +136,7 @@ pub trait KVVec<T> {
     fn get_len(ext: &mut Ext, pos: &H256) -> Result<u64, String>;
 }
 pub struct Array<T> {
-    _data: T,
+    pub _data: T,
 }
 
 impl<T> KVVec<T> for Array<T>
@@ -178,8 +178,8 @@ where
 }
 
 pub struct Map<Key, Value> {
-    _key: Key,
-    _value: Value,
+    pub _key: Key,
+    pub _value: Value,
 }
 
 pub trait Serialize {
@@ -210,6 +210,7 @@ where
         bytes.extend_from_slice(Key::serialize(key).as_ref());
         bytes.extend_from_slice(pos.as_ref());
         let key = bytes.crypt_hash();
+        info!("map of put_item key={:?}", key);
         Value::put(ext, &key, value)
     }
     fn get_item(ext: &Ext, pos: &H256, key: Key) -> Result<Box<Value>, String> {
@@ -217,6 +218,7 @@ where
         bytes.extend_from_slice(Key::serialize(key).as_ref());
         bytes.extend_from_slice(pos.as_ref());
         let key = bytes.crypt_hash();
+        info!("map of get_item key={:?}", key);
         Value::get(ext, &key)
     }
 }
@@ -246,6 +248,7 @@ mod tests {
         let mut ext = FakeExt::new();
 
         let original = String::from("abcdefghijabcdefghijabcdefghij");
+        println!("original={:?}", original);
         assert!(String::put(&mut ext, &H256::from(0), &original).is_ok());
         if let Ok(expected) = String::get(&mut ext, &H256::from(0)) {
             assert_eq!(original, *expected.as_ref());

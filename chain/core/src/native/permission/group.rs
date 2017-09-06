@@ -4,6 +4,7 @@ use super::action::ElementAction;
 
 
 #[derive(Clone, Debug)]
+#[allow(dead_code, unused_variables)]
 pub struct Group {
     // the Group name
     name: String,
@@ -15,6 +16,7 @@ pub struct Group {
     switch: Switch,
 }
 
+#[allow(dead_code, unused_variables)]
 impl Operate for Group{
     fn modify_element(&mut self, element: &Vec<String>, action: ElementAction) {
         // check the permission
@@ -26,7 +28,7 @@ impl Operate for Group{
     }
 }
 
-
+#[allow(dead_code, unused_variables)]
 impl Group {
     pub fn new(name: String) -> Group {
         Group {

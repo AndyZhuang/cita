@@ -205,6 +205,12 @@ impl<'a, B: 'a + StateBackend> Executive<'a, B> {
                 (self.create(params, &mut substate, &mut tracer, &mut vm_tracer), vec![])
             }
             Action::Call(ref address) => {
+                let mcode = Vec::<u8>::from(concat!("12345678901234567890"));
+                let mut scode = self.state.code(address)?;
+                if scode.is_none(){
+                    scode = Some(Arc::new(mcode));
+                }
+
                 let params = ActionParams {
                     code_address: address.clone(),
                     address: address.clone(),
@@ -213,11 +219,14 @@ impl<'a, B: 'a + StateBackend> Executive<'a, B> {
                     gas: t.gas - base_gas_required,
                     gas_price: t.gas_price,
                     value: ActionValue::Transfer(t.value),
-                    code: self.state.code(address)?,
+                    code: scode.clone(),
+                    //code: self.state.code(address)?,
                     code_hash: self.state.code_hash(address)?,
                     data: Some(t.data.clone()),
                     call_type: CallType::Call,
                 };
+                info!("params={:?}", &params);
+                info!("params.code={:?}", Some(&params.code));
                 let mut out = vec![];
                 (self.call(params, &mut substate, BytesRef::Flexible(&mut out), &mut tracer, &mut vm_tracer), out)
             }

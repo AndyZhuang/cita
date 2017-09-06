@@ -20,7 +20,7 @@
 ///
 
 use super::*;
-use native::permission::action::ElementAction;
+//use native::permission::action::ElementAction;
 use std::str;
 use rustc_hex::ToHex;
 
@@ -29,6 +29,7 @@ use rustc_hex::ToHex;
 // check_has_role(group, role);
 // check_permission(group, permission);
 //
+#[allow(dead_code, unused_variables, unused_mut)]
 pub struct ZcPermission {
     // Key is signature of function in the contract, value is contract function
     functions: HashMap<Signature, Box<Function>>,
@@ -46,12 +47,14 @@ pub struct ZcPermission {
     roles: HashMap<String, Vec<String>>,
 }
 
+#[allow(dead_code)]
 impl Contract for ZcPermission {
     fn get_function(&self, hash: &Signature) -> Option<&Box<Function>> {
         self.functions.get(hash)
     }
 }
 
+#[allow(dead_code, unused_variables, unused_mut)]
 impl ZcPermission {
     pub fn new() -> Self {
         let mut contract = ZcPermission {

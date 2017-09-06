@@ -1,18 +1,19 @@
 /// NowPay native contract implettion
-///
-///
 use super::*;
 
+#[allow(dead_code, unused_variables)]
 pub struct NowPay {
     functions: HashMap<Signature, Box<Function>>,
 }
 
+#[allow(dead_code, unused_variables)]
 impl Contract for NowPay {
     fn get_function(&self, hash: &Signature) -> Option<&Box<Function>> {
         self.functions.get(hash)
     }
 }
 
+#[allow(dead_code, unused_variables)]
 impl NowPay {
     pub fn new() -> Self {
         let mut contract = NowPay { functions: HashMap::<Signature, Box<Function>>::new() };

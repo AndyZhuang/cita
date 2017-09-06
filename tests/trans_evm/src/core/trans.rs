@@ -61,6 +61,7 @@ impl Trans {
         let mut signed_tx = SignedTransaction::new();
         signed_tx.set_transaction_with_sig(uv_tx);
         signed_tx.sign(pv.clone());
+        println!("signed_tx={:?}", signed_tx);
 
         signed_tx
     }
@@ -69,6 +70,7 @@ impl Trans {
 
         let txdata = match method {
             Methods::Sendtx(tx) => {
+                println!("tx={:?}", tx.write_to_bytes().unwrap().to_hex());
                 format!("{{\"jsonrpc\":\"2.0\",\"method\":\"cita_sendTransaction\",\"params\":[\"{}\"],\"id\":2}}", tx.write_to_bytes().unwrap().to_hex())
             }
             Methods::Height => {

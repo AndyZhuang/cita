@@ -262,6 +262,7 @@ pub fn chain_result(chain: Arc<Chain>, rx: &Receiver<(u32, u32, u32, MsgClass)>,
             let source = match id {
                 submodules::CONSENSUS => BlockSource::CONSENSUS,
                 _ => BlockSource::NET,
+
             };
             if blk_heght > current_height && blk_heght < current_height + 300 && !guard.contains_key(&blk_heght) {
                 trace!("block insert {:?}", blk_heght);

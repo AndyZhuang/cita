@@ -959,6 +959,7 @@ mod tests {
     use types::transaction::SignedTransaction;
     use util::{U256, H256, Address};
     use util::kvdb::{Database, DatabaseConfig};
+    use std::str::FromStr;
     //use util::hashable::HASH_NAME;
 
     #[test]
@@ -1055,8 +1056,8 @@ mod tests {
             .unwrap();
         println!("passsss");
         let bench = |tpb: u32| {
+            let block = create_block(&chain, privkey, to, data.clone(), (0, tpb ));
             let start = Instant::now();
-            let block = create_block(&chain, privkey, to, data.clone(), (1, tpb + 1));
             black_box(chain.execute_block(block));
             let elapsed = start.elapsed();
             let tps = u64::from(tpb) * 1_000_000_000 / (elapsed.as_secs() * 1_000_000_000 + u64::from(elapsed.subsec_nanos()));
@@ -1068,6 +1069,147 @@ mod tests {
         bench(20000);
         b.iter(|| {});
     }
+
+    #[bench]
+    fn bench_compare_sol_native_call(b: &mut Bencher) {
+        let chain = init_chain();
+        let keypair = KeyPair::gen_keypair();
+        let privkey = keypair.privkey();
+        /*
+        pragma solidity ^0.4.0;
+
+        contract Sim {
+            uint storedData;
+            string str;
+            uint[] iArray;
+            mapping (uint => uint) public balances;
+
+            function set(uint x) {
+                storedData = x;
+            }
+
+            function get() constant returns (uint retVal) {
+                return storedData;
+            }
+
+            function setstring(string sdata) {
+                str = sdata;
+            }
+
+            function getstring() returns (string) {
+            return (str);
+            }
+
+            function setarray(uint[] arr) {
+                iArray = arr;
+            }
+
+            function getarray() returns (uint[] arr) {
+            return (iArray);
+            }
+
+            function setmap(uint key, uint value) {
+                balances[key] = value;
+            }
+
+            function getmap(uint key) returns (uint value) {
+            return balances[key];
+            }
+        }
+        */
+        let data = "6060604052341561000f57600080fd5b5b61061f8061001f6000396000f30060606040523615610097576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680630cfd0fae1461009c578063411e20f1146101075780634903b0d11461013e5780634a6136c1146101755780635537f99e146101cf57806360fe47b11461022c5780636d4ce63c1461024f57806392415c9a14610278578063e2f5cc0d146102a4575b600080fd5b34156100a757600080fd5b6100af610333565b6040518080602001828103825283818151815260200191508051906020019060200280838360005b838110156100f35780820151818401525b6020810190506100d7565b505050509050019250505060405180910390f35b341561011257600080fd5b6101286004808035906020019091905050610392565b6040518082815260200191505060405180910390f35b341561014957600080fd5b61015f60048080359060200190919050506103b0565b6040518082815260200191505060405180910390f35b341561018057600080fd5b6101cd6004808035906020019082018035906020019080806020026020016040519081016040528093929190818152602001838360200280828437820191505050505050919050506103c8565b005b34156101da57600080fd5b61022a600480803590602001908201803590602001908080601f016020809104026020016040519081016040528093929190818152602001838380828437820191505050505050919050506103e3565b005b341561023757600080fd5b61024d60048080359060200190919050506103fe565b005b341561025a57600080fd5b610262610409565b6040518082815260200191505060405180910390f35b341561028357600080fd5b6102a26004808035906020019091908035906020019091905050610413565b005b34156102af57600080fd5b6102b7610430565b6040518080602001828103825283818151815260200191508051906020019080838360005b838110156102f85780820151818401525b6020810190506102dc565b50505050905090810190601f1680156103255780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b61033b6104d9565b600280548060200260200160405190810160405280929190818152602001828054801561038757602002820191906000526020600020905b815481526020019060010190808311610373575b505050505090505b90565b6000600360008381526020019081526020016000205490505b919050565b60036020528060005260406000206000915090505481565b80600290805190602001906103de9291906104ed565b505b50565b80600190805190602001906103f992919061053a565b505b50565b806000819055505b50565b6000805490505b90565b8060036000848152602001908152602001600020819055505b5050565b6104386105ba565b60018054600181600116156101000203166002900480601f0160208091040260200160405190810160405280929190818152602001828054600181600116156101000203166002900480156104ce5780601f106104a3576101008083540402835291602001916104ce565b820191906000526020600020905b8154815290600101906020018083116104b157829003601f168201915b505050505090505b90565b602060405190810160405280600081525090565b828054828255906000526020600020908101928215610529579160200282015b8281111561052857825182559160200191906001019061050d565b5b50905061053691906105ce565b5090565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f1061057b57805160ff19168380011785556105a9565b828001600101855582156105a9579182015b828111156105a857825182559160200191906001019061058d565b5b5090506105b691906105ce565b5090565b602060405190810160405280600081525090565b6105f091905b808211156105ec5760008160009055506001016105d4565b5090565b905600a165627a7a72305820a95ded2e4c74b599d832b40c1289d17fc935968a36c04bf5a039ee2f66238b390029"
+            .from_hex()
+            .unwrap();
+
+        let block = create_block(&chain, privkey, Address::from(0), data, (0, 1));
+        chain.set_block(block.clone());
+
+        let txhash = block.body().transactions()[0].hash();
+        let receipt = chain.localized_receipt(txhash).expect("no receipt found");
+
+        let sol_to = receipt.contract_address.unwrap();
+        let solidity: Vec<(Vec<u8>, String)> = vec![
+            (format!("{}{}", "60fe47b1", "0000000000000000000000000000000000000000000000000000000000000008").from_hex().unwrap(), "set(int)".to_string()),
+            (format!("{}", "6d4ce63c").from_hex().unwrap(), "get(int)".to_string()),
+            (format!("{}{}", "5537f99e", "000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000063132333435360000000000000000000000000000000000000000000000000000").from_hex().unwrap(), "setstring".to_string()),
+            (format!("{}", "e2f5cc0d").from_hex().unwrap(), "getstring".to_string()),
+            (format!("{}{}", "4a6136c1", "00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000f").from_hex().unwrap(), "setarray".to_string()),
+            (format!("{}", "0cfd0fae").from_hex().unwrap(), "getarray".to_string()),
+            (format!("{}{}", "92415c9a", "0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000f").from_hex().unwrap(), "setmap".to_string()),
+            (format!("{}{}", "411e20f1", "0000000000000000000000000000000000000000000000000000000000000001").from_hex().unwrap(), "getmap".to_string())
+        ];
+
+
+        let native_to = Address::from_str("0000000000000000000000000000000000000900").unwrap();
+        let native: Vec<(Vec<u8>, String)> = vec![
+            (format!("{}{}", "00000000", "0000000000000000000000000000000000000000000000000000000000000008").from_hex().unwrap(), "set_int".to_string()),
+            (format!("{}", "00000001").from_hex().unwrap(), "get_int".to_string()),
+            (format!("{}{}", "00000004", "0000000000000000000000000000000000000000000000000000000000000008").from_hex().unwrap(), "set_string".to_string()),
+            (format!("{}", "00000005").from_hex().unwrap(), "get_string".to_string()),
+            (format!("{}{}", "00000006", "00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000f").from_hex().unwrap(), "set_array".to_string()),
+            (format!("{}", "00000007").from_hex().unwrap(), "get_array".to_string()),
+            (format!("{}{}", "00000008", "0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000f").from_hex().unwrap(), "set_map".to_string()),
+            (format!("{}{}", "00000009", "0000000000000000000000000000000000000000000000000000000000000001").from_hex().unwrap(), "get_map".to_string())
+        ];
+
+        println!("passsss");
+
+        for index in 0..8 {
+            let bench= |tpb: u32,conf: Vec<(Vec<u8>, String)>, to: Address| ->u64 {
+                //test for solidity
+                let block = create_block(&chain, privkey, to, conf[index].0.clone(), (0, tpb));
+                let sol_start = Instant::now();
+                black_box(chain.execute_block(block));
+                let sol_elapsed = sol_start.elapsed();
+                let sol_tps = u64::from(tpb) * 1_000_000_000 / (sol_elapsed.as_secs() * 1_000_000_000 + u64::from(sol_elapsed.subsec_nanos()));
+
+                sol_tps
+            };
+            let native_tps = bench(3000,native.clone(), native_to.clone());
+            let sol_tps = bench(3000, solidity.clone(), sol_to.clone());
+
+            println!("func_name={:?}, tps(solidity/native)={}/{}={}%", native[index].1, sol_tps, native_tps, (sol_tps as f32/native_tps as f32) * 100 as f32);
+        }
+        b.iter(|| {});
+    }
+
+    #[bench]
+    fn bench_native_call_contract(b: &mut Bencher) {
+        let chain = init_chain();
+        let keypair = KeyPair::gen_keypair();
+        let privkey = keypair.privkey();
+
+        let to = Address::from_str("0000000000000000000000000000000000000900").unwrap();
+        println!("passsss");
+
+        let native: Vec<(Vec<u8>, String)> = vec![
+            (format!("{}{}", "00000000", "0000000000000000000000000000000000000000000000000000000000000008").from_hex().unwrap(), "set_int".to_string()),
+            (format!("{}", "00000001").from_hex().unwrap(), "get_int".to_string()),
+            (format!("{}{}", "00000004", "0000000000000000000000000000000000000000000000000000000000000008").from_hex().unwrap(), "set_string".to_string()),
+            (format!("{}", "00000005").from_hex().unwrap(), "get_string".to_string()),
+            (format!("{}{}", "00000006", "00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000f").from_hex().unwrap(), "set_array".to_string()),
+            (format!("{}", "00000007").from_hex().unwrap(), "get_array".to_string()),
+            (format!("{}{}", "00000008", "0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000f").from_hex().unwrap(), "set_map".to_string()),
+            (format!("{}{}", "00000009", "0000000000000000000000000000000000000000000000000000000000000001").from_hex().unwrap(), "get_map".to_string())
+        ];
+
+        for index in 0..8 {
+            let bench = |tpb: u32| {
+                let block = create_block(&chain, privkey, to, native[index].0.clone(), (0, tpb));
+                let start = Instant::now();
+                black_box(chain.execute_block(block));
+                let elapsed = start.elapsed();
+                let tps = u64::from(tpb) * 1_000_000_000 / (elapsed.as_secs() * 1_000_000_000 + u64::from(elapsed.subsec_nanos()));
+                println!("func_name:{:?},  tpb: {:>6}, tps: {:>6}", native[index].1, tpb, tps);
+            };
+            bench(3000);
+            bench(5000);
+            bench(10000);
+            bench(20000);
+            b.iter(|| {});
+        }
+    }
+
 
     #[test]
     fn test_code_at() {

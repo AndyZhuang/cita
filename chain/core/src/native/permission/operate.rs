@@ -8,24 +8,28 @@ pub trait Operate {
 }
 
 // TODO
+#[allow(dead_code, unused_variables)]
 pub fn check(group: &String, permission: &String) -> bool {
 
     true
 }
 
 // union of two string vector and return a new string vector
+#[allow(dead_code, unused_variables)]
 pub fn union(one: &Vec<String>, other: &Vec<String>) -> Vec<String> {
 
     vec![]
 }
 
 // intersection of two string vector and return a new string vector
+#[allow(dead_code, unused_variables)]
 pub fn intersection(one: &Vec<String>, other: &Vec<String>) -> Vec<String>{
 
     vec![]
 }
 
 // diff of two string vector and return a new string vector
+#[allow(dead_code, unused_variables)]
 pub fn diff(one: &Vec<String>, other: &Vec<String>) -> Vec<String>{
 
     vec![]

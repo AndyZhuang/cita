@@ -35,6 +35,7 @@ use trace::FlatTrace;
 use types::transaction::SignedTransaction;
 use util::*;
 use util::trie;
+use std::time;
 
 pub mod account;
 pub mod backend;
@@ -479,6 +480,8 @@ impl<B: Backend> State<B> {
     /// This will change the state accordingly.
     pub fn apply(&mut self, env_info: &EnvInfo, t: &SignedTransaction, tracing: bool) -> ApplyResult {
         //		let old = self.to_pod();
+        let start = time::SystemTime::now();
+
         let engine = &NullEngine::default();
         let options = TransactOptions {
             tracing: tracing,
@@ -490,6 +493,9 @@ impl<B: Backend> State<B> {
 
         // TODO uncomment once to_pod() works correctly.
         //		trace!("Applied transaction. Diff:\n{}\n", state_diff::diff_pod(&old, &self.to_pod()));
+        let duration = start.elapsed().unwrap();
+        let secs = duration.as_secs() * 1000000 + (duration.subsec_nanos() / 1000) as u64;
+        info!("func apply use time = {} μs", secs);
 
         let receipt = Receipt::new(None, e.cumulative_gas_used, e.logs);
         trace!(target: "state", "Transaction receipt: {:?}", receipt);

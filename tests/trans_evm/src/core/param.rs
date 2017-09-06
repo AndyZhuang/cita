@@ -29,6 +29,7 @@ pub struct Param {
     pub txnum: i32,
     pub threads: i32,
     pub code: String,
+    pub contractaddr: String,
 }
 
 
