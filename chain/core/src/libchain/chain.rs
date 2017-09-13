@@ -41,6 +41,7 @@ use libchain::genesis::Genesis;
 pub use libchain::transaction::*;
 use libproto::blockchain::{ProofType, Status as ProtoStatus, RichStatus as ProtoRichStatus};
 use libproto::request::FullTransaction;
+use native::Factory as NativeFactory;
 use proof::TendermintProof;
 use protobuf::RepeatedField;
 use receipt::{Receipt, LocalizedReceipt};
@@ -184,7 +185,7 @@ pub struct Chain {
     pub current_header: RwLock<Header>,
     pub is_sync: AtomicBool,
     pub max_height: AtomicUsize,
-    pub block_map: RwLock<BTreeMap<u64, (BlockSource, Block)>>,
+    pub block_map: RwLock<BTreeMap<u64, (BlockSource, Block, bool)>>,
     pub db: Arc<KeyValueDB>,
     pub sync_sender: Mutex<Sender<u64>>,
     pub state_db: StateDB,
@@ -237,6 +238,7 @@ impl Chain {
         let trie_factory = TrieFactory::new(TrieSpec::Generic);
         let factories = Factories {
             vm: EvmFactory::default(),
+            native: NativeFactory::default(),
             trie: trie_factory,
             accountdb: Default::default(),
         };
@@ -804,7 +806,8 @@ impl Chain {
             vm_tracing: analytics.vm_tracing,
             check_nonce: false,
         };
-        let ret = Executive::new(&mut state, &env_info, &engine, &self.factories.vm).transact(t, options)?;
+        let ret = Executive::new(&mut state, &env_info, &engine, &self.factories.vm, &self.factories.native)
+            .transact(t, options)?;
 
         Ok(ret)
     }
@@ -969,6 +972,7 @@ mod tests {
     extern crate cita_crypto;
     extern crate env_logger;
     extern crate mktemp;
+    extern crate rustc_serialize;
     use self::Chain;
     use super::*;
     use cita_crypto::{KeyPair, PrivKey, SIGNATURE_NAME};
@@ -976,7 +980,7 @@ mod tests {
     use libchain::block::{Block, BlockBody};
     use libchain::genesis::Spec;
     use libproto::blockchain;
-    use rustc_serialize::hex::FromHex;
+    use self::rustc_serialize::hex::FromHex;
     use std::sync::Arc;
     use std::sync::mpsc::channel;
     use std::time::{UNIX_EPOCH, Instant};

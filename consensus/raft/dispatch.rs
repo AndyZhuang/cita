@@ -49,10 +49,11 @@ pub fn dispatch(notifix: &mio::Sender<NotifyMessage>, rx: &Receiver<(u32, u32, M
                 }
             }
         }
-        MsgClass::RICHSTATUS(rich_status) => {
-            info!("raft dispatch rich_status is {:?}", rich_status);
-        }
-        MsgClass::VERIFYREQ(req) => {}
-        MsgClass::VERIFYRESP(resp) => {}
+        MsgClass::VERIFYTXREQ(req) => {}
+        MsgClass::VERIFYTXRESP(resp) => {}
+        MsgClass::VERIFYBLKREQ(req) => {}
+        MsgClass::VERIFYBLKRESP(resp) => {}
+        MsgClass::BLOCKTXHASHES(txhashes) => {}
+        MsgClass::BLOCKTXHASHESREQ(req) => {}
     }
 }

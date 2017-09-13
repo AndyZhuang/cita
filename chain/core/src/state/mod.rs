@@ -486,7 +486,8 @@ impl<B: Backend> State<B> {
             check_nonce: false,
         };
         let vm_factory = self.factories.vm.clone();
-        let e = Executive::new(self, env_info, engine, &vm_factory).transact(t, options)?;
+        let native_factory = self.factories.native.clone();
+        let e = Executive::new(self, env_info, engine, &vm_factory, &native_factory).transact(t, options)?;
 
         // TODO uncomment once to_pod() works correctly.
         //        trace!("Applied transaction. Diff:\n{}\n", state_diff::diff_pod(&old, &self.to_pod()));
@@ -705,13 +706,14 @@ mod tests {
     extern crate cita_crypto;
     extern crate protobuf;
     extern crate env_logger;
+    extern crate rustc_hex;
     ////////////////////////////////////////////////////////////////////////////////
 
     use self::libproto::blockchain;
     use super::*;
     use cita_crypto::KeyPair;
     use env_info::EnvInfo;
-    use rustc_hex::FromHex;
+    use self::rustc_hex::FromHex;
     use std::sync::Arc;
     use tests::helpers::*;
     use util::{H256, Address};
