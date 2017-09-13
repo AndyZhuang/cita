@@ -39,7 +39,7 @@ use libchain::extras::*;
 use libchain::genesis::Genesis;
 pub use libchain::transaction::*;
 use libproto::blockchain::{ProofType, Status as ProtoStatus};
-use libproto::request::FullTransaction;
+use libproto::FullTransaction;
 use proof::TendermintProof;
 use receipt::{Receipt, LocalizedReceipt};
 use state::State;
