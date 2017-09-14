@@ -183,7 +183,6 @@ impl TenderMint {
         }
     }
 
-
     pub fn pub_block(&self, block: &BlockWithProof) {
         let msg = factory::create_msg(submodules::CONSENSUS, topics::NEW_PROOF_BLOCK, communication::MsgType::BLOCK_WITH_PROOF, block.write_to_bytes().unwrap());
         self.pub_sender.send(("consensus.blk".to_string(), msg.write_to_bytes().unwrap())).unwrap();
