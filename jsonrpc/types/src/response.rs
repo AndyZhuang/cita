@@ -53,8 +53,8 @@ pub enum ResponseBody {
     Code(Bytes),
     FilterId(U256),
     UninstallFliter(bool),
-    FilterChanges(Bytes),
-    FilterLog(Bytes),
+    FilterChanges(String),
+    FilterLog(String),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -108,9 +108,9 @@ impl From<ResponseResult> for ResponseBody {
             ResponseResult::code(x) => ResponseBody::Code(Bytes::from(x)),
 
             ResponseResult::filter_id(id) => ResponseBody::FilterId(U256::from(id)),
-            ResponseResult::uninstall_filter(x) => ResponseBody::UninstallFliter(x),
-            ResponseResult::filter_changes(x) => ResponseBody::FilterChanges(Bytes::from(x)),
-            ResponseResult::filter_logs(x) => ResponseBody::FilterLog(Bytes::from(x)),
+            ResponseResult::uninstall_filter(is_uninstall) => ResponseBody::UninstallFliter(is_uninstall),
+            ResponseResult::filter_changes(log) => ResponseBody::FilterChanges(log),
+            ResponseResult::filter_logs(log) => ResponseBody::FilterLog(log),
         }
     }
 }
