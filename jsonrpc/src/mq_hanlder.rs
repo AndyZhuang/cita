@@ -17,7 +17,7 @@
 
 use base_hanlder::{TransferType, ReqInfo};
 use jsonrpc_types::response::Output;
-use libproto::{submodules, topics, parse_msg, cmd_id, display_cmd, MsgClass, Request, Response};
+use libproto::{parse_msg, display_cmd, MsgClass, Response};
 use num_cpus;
 use parking_lot::{RwLock, Mutex};
 use serde_json;
@@ -26,11 +26,11 @@ use std::sync::Arc;
 use threadpool::ThreadPool;
 use ws;
 
-
 #[derive(Default)]
 pub struct MqHandler {
     transfer_type: TransferType,
     thread_pool: Option<ThreadPool>,
+    //TODO 定时清理工作
     ws_responses: Arc<Mutex<HashMap<Vec<u8>, (ReqInfo, ws::Sender)>>>,
     responses: Arc<RwLock<HashMap<Vec<u8>, Response>>>,
 }
@@ -73,11 +73,10 @@ impl MqHandler {
         //TODO match
         match content_ext {
             MsgClass::RESPONSE(content) => {
+                trace!("from chain response rid {:?}", String::from_utf8(content.request_id.clone()));
                 match self.transfer_type {
                     TransferType::HTTP => {
-                        let mut responses = self.responses.write();
-                        trace!("from chain response rid {:?}", content.request_id);
-                        responses.insert(content.request_id.clone(), content);
+                        self.responses.write().insert(content.request_id.clone(), content);
                     }
                     TransferType::WEBSOCKET => {
                         let ws_responses = self.ws_responses.clone();

@@ -22,7 +22,7 @@ use hyper::uri::RequestUri::AbsolutePath;
 use jsonrpc_types::{RpcRequest, method};
 use jsonrpc_types::error::Error;
 use jsonrpc_types::response::{RpcSuccess, RpcFailure, Output};
-use libproto::response;
+use libproto::{response, communication};
 use parking_lot::{RwLock, Mutex};
 use protobuf::Message;
 use serde_json;
@@ -81,9 +81,10 @@ impl HttpHandler {
             Ok(req) => {
                 let request_id = req.request_id.clone();
                 {
-                    self.tx.lock().send((topic, req.write_to_bytes().unwrap())).unwrap();
+                    let msg: communication::Message = req.into();
+                    self.tx.lock().send((topic, msg.write_to_bytes().unwrap())).unwrap();
                 }
-                trace!("wait response {:?}", req.get_request_id());
+                trace!("wait response {:?}", String::from_utf8(request_id.clone()));
                 let mut timeout_count = 0;
                 loop {
                     timeout_count = timeout_count + 1;
@@ -118,7 +119,7 @@ impl Handler for HttpHandler {
         let data = match self.pase_url(req) {
             Err(err) => serde_json::to_string(&RpcFailure::from(err)),
             Ok(body) => {
-                trace!("Request data {:?}", body);
+                trace!("JsonRpc recive raw Request data {:?}", body);
                 match self.deal_req(body) {
                     Ok(ret) => serde_json::to_string(&ret),
                     Err(err) => serde_json::to_string(&err),
@@ -127,7 +128,7 @@ impl Handler for HttpHandler {
         };
 
         //TODO
-        trace!("respone data {:?}", data);
+        trace!("JsonRpc respone data {:?}", data);
         res.send(data.expect("return client's respone data unwrap error").as_ref());
     }
 }
