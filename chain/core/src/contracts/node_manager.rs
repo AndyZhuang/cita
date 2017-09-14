@@ -51,14 +51,10 @@ impl NodeManager {
         };
 
         trace!("data: {:?}", call_request.data);
-        let result = chain.eth_call(call_request, BlockId::Latest);
-        if let Err(call_error) = result.clone() {
-            info!("Node manager call listNode error {:?}", call_error);
-        }
-        let output = result.clone().unwrap();
-        trace!("output: {:?}", output);
+        let output = chain.eth_call(call_request, BlockId::Latest).unwrap();
+        trace!("nodemanager output: {:?}", output);
         let nodes: Vec<Address> = parse_string_to_addresses(&output);
-        trace!("nodes: {:?}", nodes);
+        trace!("nodemanager nodes: {:?}", nodes);
         nodes
     }
 }

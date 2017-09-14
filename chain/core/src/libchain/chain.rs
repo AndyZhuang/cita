@@ -893,11 +893,17 @@ impl Chain {
                 let status = self.save_status(&mut batch);
                 self.db.write(batch).expect("DB write failed.");
 
+                // quota info
+                //let users = QuotaManager::users(&self);
+                let quotas = QuotaManager::read(&self);
+
                 // Reload consensus nodes
                 let nodes: Vec<Address> = NodeManager::read(&self);
                 let mut rich_status = RichStatus::new();
                 rich_status.set_hash(*status.hash());
                 rich_status.set_number(status.number());
+                let quota_hex = quotas.first().unwrap();
+                rich_status.set_block_gas_limit(u64::from_str_radix(&quota_hex[..], 16).unwrap());
                 rich_status.set_nodes(nodes);
 
                 // Reload senders and creators cache
@@ -905,10 +911,6 @@ impl Chain {
                 let mut creators = self.creators.write();
                 *senders = AccountManager::load_senders(self);
                 *creators = AccountManager::load_creators(self);
-
-                // quota info
-                let users = QuotaManager::users(&self);
-                let quota = QuotaManager::read(&self);
 
 
                 info!("chain update {:?}", height);
