@@ -19,9 +19,11 @@
 
 pub mod node_manager;
 pub mod account_manager;
+pub mod quota_manager;
 
 pub use self::account_manager::AccountManager;
 pub use self::node_manager::NodeManager;
+pub use self::quota_manager::QuotaManager;
 
 use util::{Address, U256, H160};
 

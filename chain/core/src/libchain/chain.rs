@@ -20,7 +20,7 @@ use blooms::*;
 pub use byteorder::{BigEndian, ByteOrder};
 use cache_manager::CacheManager;
 use call_analytics::CallAnalytics;
-use contracts::{NodeManager, AccountManager};
+use contracts::{NodeManager, AccountManager, QuotaManager};
 use db;
 use db::*;
 
@@ -905,6 +905,11 @@ impl Chain {
                 let mut creators = self.creators.write();
                 *senders = AccountManager::load_senders(self);
                 *creators = AccountManager::load_creators(self);
+
+                // quota info
+                let users = QuotaManager::users(&self);
+                let quota = QuotaManager::read(&self);
+
 
                 info!("chain update {:?}", height);
                 Some(rich_status.protobuf())
